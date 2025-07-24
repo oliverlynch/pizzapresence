@@ -15,7 +15,7 @@ pip install requests json5 pypresence
 Run:
 
 ```sh
-python3 main.py
+python3 -m pizzapresence
 ```
 
 
