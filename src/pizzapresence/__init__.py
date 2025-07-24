@@ -37,44 +37,49 @@ def filetime(path):
 	except:
 		return maxSeconds + 1
 
-if filetime(cache) > maxSeconds:
-	print("Cached webpage too old, updating...")
-	with open(cache, "w") as f:
-		f.write(requests.get(
-			url, 
-			headers={
-				"Accept":accept,
-				"Accept-Language":accept_language,
-				"Dnt":"1",
-				"Upgrade-Insecure-Requests":"1",
-				"User-Agent":useragent
-				}).text)
-else:
-	print("Using cached webpage.")
+def main():
+	if filetime(cache) > maxSeconds:
+		print("Cached webpage too old, updating...")
+		with open(cache, "w") as f:
+			f.write(requests.get(
+				url, 
+				headers={
+					"Accept":accept,
+					"Accept-Language":accept_language,
+					"Dnt":"1",
+					"Upgrade-Insecure-Requests":"1",
+					"User-Agent":useragent
+					}).text)
+	else:
+		print("Using cached webpage.")
 
-with open(cache, "r") as f:
+	with open(cache, "r") as f:
 
-	fl = f.read();
+		fl = f.read();
 
-	st = fl.find("nationalDeals: [")
-	ed = fl.find("]", st)
+		st = fl.find("nationalDeals: [")
+		ed = fl.find("]", st)
 
-	nationalDealString = fl[st + 15:ed + 1]
+		nationalDealString = fl[st + 15:ed + 1]
 
-	# Remove comments
-	nationalDealString = re.sub(r"\s\/\/.*$", "", nationalDealString, flags=re.MULTILINE);
-	nationalDealString = nationalDealString.replace("'",'"')
+		# Remove comments
+		nationalDealString = re.sub(r"\s\/\/.*$", "", nationalDealString, flags=re.MULTILINE);
+		nationalDealString = nationalDealString.replace("'",'"')
 
-	# Attempt parsing as json
-	nationalDeals = json5.loads(nationalDealString);
+		# Attempt parsing as json
+		nationalDeals = json5.loads(nationalDealString);
 
-	coupons = []
-	for coupon in nationalDeals:
-		dealCode = coupon["cta_link"][-6:]
-		link = [{"url":coupon["cta_link"], "label": "Order Now"}]
+		coupons = []
+		for coupon in nationalDeals:
+			dealCode = coupon["cta_link"][-6:]
+			link = [{"url":coupon["cta_link"], "label": "Order Now"}]
 
-		coupons.append([coupon["desc"], dealCode, link])
-		print("Deal: {0}, Code: {1}, Link: {2}".format(coupon["desc"],dealCode,link))
+			coupons.append([coupon["desc"], dealCode, link])
+			print("Deal: {0}, Code: {1}, Link: {2}".format(coupon["desc"],dealCode,link))
+		
+	if coupons:
+		ready(coupons)
+	
 
 def ready(coupons):
 	print("Connecting to discord...")
@@ -98,5 +103,6 @@ def ready(coupons):
 		time.sleep(10) #Wait a wee bit
 		i += 1
 
-if coupons:
-	ready(coupons)
+
+if __name__ == "__main__":
+	main()
